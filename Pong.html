@@ -118,7 +118,7 @@
 
 
 
-<div class="flex-parent jc-center">
+<div id="alleButtons" class="flex-parent jc-center">
 
    <!-- <button class="btn button btn-primary"  id="button1" type="button" value="Abschicken" onclick="namenList(); namen1.value=''; namen2.value=''" disabled> Abschicken </button> -->
 
@@ -128,6 +128,15 @@
     <button class="btn button btn-primary" id="button2" type="button" value="Runde gespielt"> Runde gespielt </button>
     <!-- <input class="btn button btn-primary"  type="button" value="Runde gespielt " onclick="loschen();" /> -->
 
+    <button class="btn button btn-secondary" id="buttonTeilen" type="button" value="Teilen"> Share </button>
+
+</div>
+
+
+
+<!--Teilen div-->
+<div id="teilenFeld">
+<p>test</p>
 </div>
 
 
@@ -163,14 +172,18 @@
     const app = initializeApp(firebaseConfig);
     import { 
         getFirestore, doc, getDoc,getDocs, setDoc, collection, addDoc, updateDoc, 
-        deleteDoc, deleteField, serverTimestamp, onSnapshot, query, orderBy, limit, where} from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
+        deleteDoc, deleteField, serverTimestamp, onSnapshot, query, orderBy, 
+        limit, where} from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
+import{
+    getAuth, onAuthStateChanged, signInAnonymously
+} from "https://www.gstatic.com/firebasejs/9.10.0/firebase-auth.js";
+
 
         const db = getFirestore();
  
   
    
-        loadMessages()
-       getLatestItem ()
+        
 
 
 
@@ -189,15 +202,66 @@ buttonTest.addEventListener('click', buttonReset);
 var buttonTest2 = document.getElementById("button2");
 buttonTest2.addEventListener('click', deleteDocument);
 
-var thingsRef;
-var unsubscribe;
+var buttonTeilen = document.getElementById("buttonTeilen")
+buttonTeilen.addEventListener('click', teilen)
+
+//---------------Anmelden-------------
+
+const auth = getAuth();
+signInAnonymously(auth)
+  .then(() => {
+    
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    // ...
+  });
+
+  
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // User is signed in, see docs for a list of available properties
+    // https://firebase.google.com/docs/reference/js/firebase.User
+    const uid = user.uid;
+    if(sessionStorage.getItem("uid")== undefined){
+    sessionStorage.setItem("uid", uid)}
+    
+    
+  } 
+});
+
+
+
+
+
+
+
+//-------------------funktionen starten--------------
+loadMessages()
+       getLatestItem ()
+
+
+
+
+
+
+
+
+//-----------------------Teilen----------------------
+
+function teilen(){
+
+    
+}
+
 
 
 //--------------- Insert Data ------------------------
 
 async function insertData(){
    
-thingsRef = collection(db,"Reihenfolge")
+var thingsRef = collection(db,sessionStorage.getItem("uid"))
 
 const docRef = await addDoc(
     thingsRef, {
@@ -211,7 +275,6 @@ const docRef = await addDoc(
 //location.reload()
 
 }
-
 
 
 
@@ -242,7 +305,7 @@ var name1 = document.createElement("ul");
 // Loads chat messages history and listens for upcoming ones.
 async function loadMessages() {
     
-    const q = query(collection(db, "Reihenfolge"), orderBy('timestamp', 'asc'));
+    const q = query(collection(db, sessionStorage.getItem("uid")), orderBy('timestamp', 'asc'));
 const unsubscribe = onSnapshot(q, (querySnapshot) => {
   const cities = [];
   querySnapshot.forEach((doc) => {
@@ -253,20 +316,33 @@ const unsubscribe = onSnapshot(q, (querySnapshot) => {
     
 
     var platzhalter = cities.join(", ")
+
+    sessionStorage.setItem("database", cities)
+    /*
       var name2 = platzhalter.replace(/-/g,"<li>");
         name1.innerHTML = name2.replace(/,/g,"</li>") ;
       
       document.getElementById("li").appendChild(name1);
+*/
+      sessionToPage();
 });
 
  
 }
 
+function sessionToPage(){
+   var platzhalter = sessionStorage.getItem("database")
 
+
+    var name2 = platzhalter.replace(/-/g,"<li>");
+        name1.innerHTML = name2.replace(/,/g,"</li>") ;
+      
+      document.getElementById("li").appendChild(name1);
+}
 
 function getLatestItem (){
 
-    const recentMessagesQuery = query(collection(getFirestore(), 'Reihenfolge'), orderBy('timestamp', 'asc'),limit(1));
+    const recentMessagesQuery = query(collection(getFirestore(), sessionStorage.getItem("uid")), orderBy('timestamp', 'asc'),limit(1));
     onSnapshot(recentMessagesQuery, function(snapshot) {
     snapshot.docChanges().forEach(function(change) {
 
@@ -290,7 +366,7 @@ function getLatestItem (){
 
 async function deleteDocument(){
 
-    var docRef = doc(db, "Reihenfolge", documentId)
+    var docRef = doc(db, sessionStorage.getItem("uid"), documentId)
 
    await deleteDoc(docRef)
 
@@ -307,6 +383,9 @@ function buttonReset(){
     document.getElementById("namen2").value='';
 
 }
+
+
+
 
 
   </script>

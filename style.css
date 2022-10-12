@@ -1184,3 +1184,23 @@ details[open] summary {
   text-align: center;
   content: "Aussetzen";
 }
+
+
+
+
+
+
+
+
+
+#teilenFeld{
+  width: 1000px;
+  height: 500px;
+z-index: 2;
+  background-color: green;
+}
+
+
+#alleButtons{
+  display: flex
+}
